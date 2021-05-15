@@ -8,6 +8,7 @@ class ConstantUtf8 : public ConstantBase
 {
 public:
 	ConstantUtf8(std::string_view s) : contents(s) {}
+	ConstantUtf8(std::string&& s) : contents(s) {}
 
 	ConstantTag get_tag() const override { return ConstantTag::CONSTANT_Utf8; }
 	std::string_view get_contents() { return contents; }
