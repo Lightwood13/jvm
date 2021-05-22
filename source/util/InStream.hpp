@@ -5,20 +5,23 @@
 #include <cstdint>
 #include <stdexcept>
 
-class InStream : private std::istream
+class InStream
 {
+private:
+	std::istream& stream;
 public:
+	InStream(std::istream& stream) : stream(stream) {}
 	void read(char* dest, std::streamsize count)
 	{
-		std::istream::read(dest, count);
-		if (eof())
+		stream.read(dest, count);
+		if (stream.eof())
 			throw std::runtime_error("Unexpected end of file");
 	}
 
 	uint8_t get_u1()
 	{
-		int res = std::istream::get();
-		if (eof())
+		int res = stream.get();
+		if (stream.eof())
 			throw std::runtime_error("Unexpected end of file");
 		return static_cast<uint8_t>(res);
 	}
