@@ -9,8 +9,10 @@
 #include "../util/InStream.hpp"
 #include "../constant_pool/ConstantBase.hpp"
 #include "../constant_pool/ConstantUtf8.hpp"
+#include "../constant_pool/ConstantInteger.hpp"
 
 std::unique_ptr<ConstantUtf8> parse_constant_utf8(InStream& stream);
+std::unique_ptr<ConstantInteger> parse_constant_integer(InStream& stream);
 
 std::unique_ptr<ConstantBase> parse_constant(InStream& stream)
 {
@@ -20,6 +22,8 @@ std::unique_ptr<ConstantBase> parse_constant(InStream& stream)
 	{
 	case ConstantTag::CONSTANT_Utf8:
 		return parse_constant_utf8(stream);
+	case ConstantTag::CONSTANT_Integer:
+		return parse_constant_integer(stream);
 	default:
 		throw std::logic_error(std::string("Unsupported constant type: ") + constant_tag_to_string(tag));
 	}
@@ -31,4 +35,9 @@ std::unique_ptr<ConstantUtf8> parse_constant_utf8(InStream& stream)
 	std::string res(length, 0);
 	stream.read(res.data(), length);
 	return std::make_unique<ConstantUtf8>(std::move(res));
+}
+
+std::unique_ptr<ConstantInteger> parse_constant_integer(InStream& stream)
+{
+	return std::make_unique<ConstantInteger>(stream.get_u4());
 }
