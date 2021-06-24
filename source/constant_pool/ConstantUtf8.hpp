@@ -7,14 +7,14 @@
 class ConstantUtf8 : public ConstantBase
 {
 public:
-	ConstantUtf8(std::string_view s) : contents(s) {}
-	ConstantUtf8(std::string&& s) : contents(s) {}
+	ConstantUtf8(const std::string_view val) : contents(val) {}
+	ConstantUtf8(std::string&& val) : contents(val) {}
 
 	ConstantTag get_tag() const override { return ConstantTag::CONSTANT_Utf8; }
-	std::string_view get_contents() { return contents; }
+	std::string_view get_contents() const { return contents; }
 
 private:
-	std::string contents;
+	const std::string contents;
 };
 
 #endif // CONSTANT_UTF8_HPP
