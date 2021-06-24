@@ -7,13 +7,13 @@
 class ConstantInteger : public ConstantBase
 {
 public:
-	ConstantInteger(int32_t i) : contents(i) {}
+	ConstantInteger(const int32_t val) : contents(val) {}
 
 	ConstantTag get_tag() const override { return ConstantTag::CONSTANT_Integer; }
-	int32_t get_contents() { return contents; }
+	int32_t get_contents() const { return contents; }
 
 private:
-	int32_t contents;
+	const int32_t contents;
 };
 
 #endif // CONSTANT_INTEGER_HPP
