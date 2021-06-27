@@ -27,7 +27,10 @@ enum class ConstantTag : uint8_t
 	CONSTANT_Utf8 = 1,
 	CONSTANT_MethodHandle = 15,
 	CONSTANT_MethodType = 16,
-	CONSTANT_InvokeDynamic = 18
+	CONSTANT_Dynamic = 17,
+	CONSTANT_InvokeDynamic = 18,
+	CONSTANT_Module = 19,
+	CONSTANT_Package = 20
 };
 
 std::string constant_tag_to_string(ConstantTag tag) {

@@ -15,6 +15,21 @@
 #include "../constant_pool/ConstantFloat.hpp"
 #include "../constant_pool/ConstantLong.hpp"
 #include "../constant_pool/ConstantDouble.hpp"
+#include "../constant_pool/other_constants.hpp"                                                                           \
+
+template <class ConstantClass>
+std::unique_ptr<ConstantClass> parse_constant_one_index(InStream& stream)
+{
+	return std::make_unique<ConstantClass>(stream.get_u2());
+}
+
+template <class ConstantClass>
+std::unique_ptr<ConstantClass> parse_constant_two_indices(InStream& stream)
+{
+	uint16_t idx1 = stream.get_u2();
+	uint16_t idx2 = stream.get_u2();
+	return std::make_unique<ConstantClass>(idx1, idx2);
+}
 
 std::unique_ptr<ConstantUtf8> parse_constant_utf8(InStream& stream);
 std::unique_ptr<ConstantInteger> parse_constant_integer(InStream& stream);
@@ -38,6 +53,28 @@ std::unique_ptr<ConstantBase> parse_constant(InStream& stream)
 		return parse_constant_long(stream);
 	case ConstantTag::CONSTANT_Double:
 		return parse_constant_double(stream);
+	case ConstantTag::CONSTANT_Class:
+		return parse_constant_one_index<ConstantClass>(stream);
+	case ConstantTag::CONSTANT_String:
+		return parse_constant_one_index<ConstantString>(stream);
+	case ConstantTag::CONSTANT_Fieldref:
+		return parse_constant_two_indices<ConstantFieldref>(stream);
+	case ConstantTag::CONSTANT_Methodref:
+		return parse_constant_two_indices<ConstantMethodref>(stream);
+	case ConstantTag::CONSTANT_InterfaceMethodref:
+		return parse_constant_two_indices<ConstantInterfaceMethodref>(stream);
+	case ConstantTag::CONSTANT_NameAndType:
+		return parse_constant_two_indices<ConstantNameAndType>(stream);
+	case ConstantTag::CONSTANT_MethodType:
+		return parse_constant_one_index<ConstantMethodType>(stream);
+	case ConstantTag::CONSTANT_Dynamic:
+		return parse_constant_two_indices<ConstantDynamic>(stream);
+	case ConstantTag::CONSTANT_InvokeDynamic:
+		return parse_constant_two_indices<ConstantInvokeDynamic>(stream);
+	case ConstantTag::CONSTANT_Module:
+		return parse_constant_one_index<ConstantModule>(stream);
+	case ConstantTag::CONSTANT_Package:
+		return parse_constant_one_index<ConstantPackage>(stream);
 	default:
 		throw std::logic_error(std::string("Unsupported constant type: ") + constant_tag_to_string(tag));
 	}
