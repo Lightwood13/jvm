@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <array>
+#include <format>
 
 #include "../util/util.hpp"
 #include "../util/InStream.hpp"
@@ -15,7 +16,9 @@
 #include "../constant_pool/ConstantFloat.hpp"
 #include "../constant_pool/ConstantLong.hpp"
 #include "../constant_pool/ConstantDouble.hpp"
-#include "../constant_pool/other_constants.hpp"                                                                           \
+#include "../constant_pool/ConstantMethodHandle.hpp"
+#include "../constant_pool/other_constants.hpp"
+#include "../constant_pool/ConstantPool.hpp"
 
 template <class ConstantClass>
 std::unique_ptr<ConstantClass> parse_constant_one_index(InStream& stream)
@@ -36,6 +39,25 @@ std::unique_ptr<ConstantInteger> parse_constant_integer(InStream& stream);
 std::unique_ptr<ConstantFloat> parse_constant_float(InStream& stream);
 std::unique_ptr<ConstantLong> parse_constant_long(InStream& stream);
 std::unique_ptr<ConstantDouble> parse_constant_double(InStream& stream);
+std::unique_ptr<ConstantMethodHandle> parse_constant_method_handle(InStream& stream);
+std::unique_ptr<ConstantBase> parse_constant(InStream& stream);
+
+ConstantPool parse_constant_pool(InStream& stream)
+{
+	uint16_t constant_pool_count = stream.get_u2();
+	if (constant_pool_count == 0)
+		throw std::logic_error("Invalid constant pool count");
+
+	std::vector<std::shared_ptr<const ConstantBase>> pool;
+	for (uint16_t i = 0; i < constant_pool_count - 1; i++)
+	{
+		pool.push_back(parse_constant(stream));
+		ConstantTag tag = pool.back()->get_tag();
+		if (tag == ConstantTag::CONSTANT_Long || tag == ConstantTag::CONSTANT_Double)
+			pool.push_back(std::shared_ptr<const ConstantBase>());
+	}
+	return ConstantPool(std::move(pool));
+}
 
 std::unique_ptr<ConstantBase> parse_constant(InStream& stream)
 {
@@ -75,8 +97,10 @@ std::unique_ptr<ConstantBase> parse_constant(InStream& stream)
 		return parse_constant_one_index<ConstantModule>(stream);
 	case ConstantTag::CONSTANT_Package:
 		return parse_constant_one_index<ConstantPackage>(stream);
+	case ConstantTag::CONSTANT_MethodHandle:
+		return parse_constant_method_handle(stream);
 	default:
-		throw std::logic_error(std::string("Unsupported constant type: ") + constant_tag_to_string(tag));
+		throw std::logic_error(std::format("Unsupported constant type: {}", static_cast<uint8_t>(tag)));
 	}
 }
 
@@ -122,4 +146,11 @@ std::unique_ptr<ConstantDouble> parse_constant_double(InStream& stream)
 	data[6] = stream.get_u1();
 	data[7] = stream.get_u1();
 	return std::make_unique<ConstantDouble>(bytes_to_double(data));
+}
+
+std::unique_ptr<ConstantMethodHandle> parse_constant_method_handle(InStream& stream)
+{
+	uint8_t reference_kind = stream.get_u1();
+	uint16_t reference_index = stream.get_u2();
+	return std::make_unique<ConstantMethodHandle>(reference_kind, reference_index);
 }

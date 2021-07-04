@@ -22,6 +22,7 @@ public:
 	}
 };
 
+
 TEST(Parser, ParseUTF8)
 {
 	std::vector<uint8_t> data = {
@@ -34,6 +35,7 @@ TEST(Parser, ParseUTF8)
 	std::unique_ptr<ConstantUtf8> cutf8(static_cast<ConstantUtf8*>(c.release()));
 	ASSERT_EQ(cutf8->get_contents(), "abc");
 }
+
 
 TEST(Parser, ParseInteger)
 {
@@ -57,6 +59,7 @@ TEST(Parser, ParseInteger)
 	cint = std::unique_ptr<ConstantInteger>(static_cast<ConstantInteger*>(c.release()));
 	ASSERT_EQ(cint->get_contents(), -2);
 }
+
 
 TEST(Parser, ParseFloat)
 {
@@ -274,4 +277,47 @@ TEST(Parser, ParsePackage)
 	ASSERT_EQ(c->get_tag(), ConstantTag::CONSTANT_Package);
 	std::unique_ptr<ConstantPackage> cpkg(static_cast<ConstantPackage*>(c.release()));
 	ASSERT_EQ(cpkg->get_name_index(), 42);
+}
+
+
+TEST(Parser, ParseMethodHandle)
+{
+	std::vector<uint8_t> data = {
+		static_cast<uint8_t>(ConstantTag::CONSTANT_MethodHandle),
+		42, 0, 42
+	};
+	HelperStream in(data);
+	ASSERT_THROW({
+		try
+		{ std::unique_ptr<ConstantBase> c = parse_constant(in); }
+		catch (const std::logic_error& e)
+		{
+			ASSERT_STREQ("Unresolved reference kind: 42", e.what());
+			throw;
+		}
+	}, std::logic_error);
+
+	data[1] = static_cast<uint8_t>(ConstantMethodHandle::ReferenceKind::REF_getField);
+	HelperStream in2(data);
+	std::unique_ptr<ConstantBase> c = parse_constant(in2);
+	ASSERT_EQ(c->get_tag(), ConstantTag::CONSTANT_MethodHandle);
+	std::unique_ptr<ConstantMethodHandle> cmh(static_cast<ConstantMethodHandle*>(c.release()));
+	ASSERT_EQ(cmh->get_reference_kind(), ConstantMethodHandle::ReferenceKind::REF_getField);
+	ASSERT_EQ(cmh->get_reference_index(), 42);
+}
+
+
+TEST(Parser, ParseUnsupportedConstant)
+{
+	std::vector<uint8_t> data = { 42 };
+	HelperStream in(data);
+	ASSERT_THROW({
+		try
+		{ std::unique_ptr<ConstantBase> c = parse_constant(in); }
+		catch (const std::logic_error& e)
+		{
+			ASSERT_STREQ("Unsupported constant type: 42", e.what());
+			throw;
+		}
+	}, std::logic_error);
 }
