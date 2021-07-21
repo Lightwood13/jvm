@@ -2,6 +2,7 @@
 
 #include "../source/parser/parser.cpp"
 
+#include <fstream>
 #include <sstream>
 #include <vector>
 #include <cstddef>
@@ -103,13 +104,13 @@ TEST(Parser, ParseDouble)
 {
 	std::vector<uint8_t> data = {
 		static_cast<uint8_t>(ConstantTag::CONSTANT_Double),
-		0xbf, 0xe4, 0, 0, 0, 0, 0, 0
+		0x40, 0x0f, 0xff, 0xff, 0xfc, 0, 0, 0
 	};
 	HelperStream in(data);
 	std::unique_ptr<ConstantBase> c = parse_constant(in);
 	ASSERT_EQ(c->get_tag(), ConstantTag::CONSTANT_Double);
 	std::unique_ptr<ConstantDouble> cdouble(static_cast<ConstantDouble*>(c.release()));
-	ASSERT_EQ(cdouble->get_contents(), -0.625);
+	ASSERT_EQ(cdouble->get_contents(), 3.9999999701976776123046875);
 }
 
 
@@ -287,7 +288,8 @@ TEST(Parser, ParseMethodHandle)
 		42, 0, 42
 	};
 	HelperStream in(data);
-	ASSERT_THROW({
+	ASSERT_THROW(
+	{
 		try
 		{ std::unique_ptr<ConstantBase> c = parse_constant(in); }
 		catch (const std::logic_error& e)
@@ -311,7 +313,8 @@ TEST(Parser, ParseUnsupportedConstant)
 {
 	std::vector<uint8_t> data = { 42 };
 	HelperStream in(data);
-	ASSERT_THROW({
+	ASSERT_THROW(
+	{
 		try
 		{ std::unique_ptr<ConstantBase> c = parse_constant(in); }
 		catch (const std::logic_error& e)
@@ -320,4 +323,111 @@ TEST(Parser, ParseUnsupportedConstant)
 			throw;
 		}
 	}, std::logic_error);
+}
+
+
+TEST(Parser, ParseConstantPool)
+{
+	std::ifstream inFile("../../../test/resources/TestConstant.class");
+	ASSERT_EQ(inFile.is_open(), true);
+	inFile.seekg(8);
+	InStream inStream(inFile);
+	ConstantPool cp = parse_constant_pool(inStream);
+	ASSERT_THROW(
+	{
+		try
+		{ cp[0]; }
+		catch (const std::invalid_argument& e)
+		{
+			ASSERT_STREQ("Invalid constant pool index", e.what());
+			throw;
+		}
+	}, std::invalid_argument);
+
+	ASSERT_THROW({
+		try
+		{ cp[16]; }
+		catch (const std::invalid_argument& e)
+		{
+			ASSERT_STREQ("Invalid constant pool index", e.what());
+			throw;
+		}
+	}, std::invalid_argument);
+
+	std::shared_ptr<ConstantBase> temp = cp[1];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_Methodref);
+	std::shared_ptr<ConstantMethodref> c1 = std::static_pointer_cast<ConstantMethodref>(temp);
+	ASSERT_EQ(c1->get_class_index(), 2);
+	ASSERT_EQ(c1->get_name_and_type_index(), 3);
+
+	temp = cp[2];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_Class);
+	std::shared_ptr<ConstantClass> c2 = std::static_pointer_cast<ConstantClass>(temp);
+	ASSERT_EQ(c2->get_name_index(), 4);
+
+	temp = cp[3];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_NameAndType);
+	std::shared_ptr<ConstantNameAndType> c3 = std::static_pointer_cast<ConstantNameAndType>(temp);
+	ASSERT_EQ(c3->get_name_index(), 5);
+	ASSERT_EQ(c3->get_descriptor_index(), 6);
+
+	temp = cp[4];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_Utf8);
+	std::shared_ptr<ConstantUtf8> c4 = std::static_pointer_cast<ConstantUtf8>(temp);
+	ASSERT_EQ(c4->get_contents(), "java/lang/Object");
+
+	temp = cp[5];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_Utf8);
+	std::shared_ptr<ConstantUtf8> c5 = std::static_pointer_cast<ConstantUtf8>(temp);
+	ASSERT_EQ(c5->get_contents(), "<init>");
+
+	temp = cp[6];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_Utf8);
+	std::shared_ptr<ConstantUtf8> c6 = std::static_pointer_cast<ConstantUtf8>(temp);
+	ASSERT_EQ(c6->get_contents(), "()V");
+
+	temp = cp[7];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_Integer);
+	std::shared_ptr<ConstantInteger> c7 = std::static_pointer_cast<ConstantInteger>(temp);
+	ASSERT_EQ(c7->get_contents(), 1000000);
+
+	temp = cp[8];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_Class);
+	std::shared_ptr<ConstantClass> c8 = std::static_pointer_cast<ConstantClass>(temp);
+	ASSERT_EQ(c8->get_name_index(), 9);
+
+	temp = cp[9];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_Utf8);
+	std::shared_ptr<ConstantUtf8> c9 = std::static_pointer_cast<ConstantUtf8>(temp);
+	ASSERT_EQ(c9->get_contents(), "TestConstant");
+
+	temp = cp[10];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_Utf8);
+	std::shared_ptr<ConstantUtf8> c10 = std::static_pointer_cast<ConstantUtf8>(temp);
+	ASSERT_EQ(c10->get_contents(), "Code");
+
+	temp = cp[11];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_Utf8);
+	std::shared_ptr<ConstantUtf8> c11 = std::static_pointer_cast<ConstantUtf8>(temp);
+	ASSERT_EQ(c11->get_contents(), "LineNumberTable");
+
+	temp = cp[12];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_Utf8);
+	std::shared_ptr<ConstantUtf8> c12 = std::static_pointer_cast<ConstantUtf8>(temp);
+	ASSERT_EQ(c12->get_contents(), "add_42");
+
+	temp = cp[13];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_Utf8);
+	std::shared_ptr<ConstantUtf8> c13 = std::static_pointer_cast<ConstantUtf8>(temp);
+	ASSERT_EQ(c13->get_contents(), "(I)I");
+
+	temp = cp[14];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_Utf8);
+	std::shared_ptr<ConstantUtf8> c14 = std::static_pointer_cast<ConstantUtf8>(temp);
+	ASSERT_EQ(c14->get_contents(), "SourceFile");
+
+	temp = cp[15];
+	ASSERT_EQ(temp->get_tag(), ConstantTag::CONSTANT_Utf8);
+	std::shared_ptr<ConstantUtf8> c15 = std::static_pointer_cast<ConstantUtf8>(temp);
+	ASSERT_EQ(c15->get_contents(), "TestConstant.java");
 }
