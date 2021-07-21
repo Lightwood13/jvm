@@ -48,13 +48,13 @@ ConstantPool parse_constant_pool(InStream& stream)
 	if (constant_pool_count == 0)
 		throw std::logic_error("Invalid constant pool count");
 
-	std::vector<std::shared_ptr<const ConstantBase>> pool;
+	std::vector<std::shared_ptr<ConstantBase>> pool;
 	for (uint16_t i = 0; i < constant_pool_count - 1; i++)
 	{
 		pool.push_back(parse_constant(stream));
 		ConstantTag tag = pool.back()->get_tag();
 		if (tag == ConstantTag::CONSTANT_Long || tag == ConstantTag::CONSTANT_Double)
-			pool.push_back(std::shared_ptr<const ConstantBase>());
+			pool.push_back(std::shared_ptr<ConstantBase>());
 	}
 	return ConstantPool(std::move(pool));
 }

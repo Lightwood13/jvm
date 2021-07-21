@@ -41,7 +41,7 @@ float bytes_to_float(std::array<uint8_t, 4>& data)
 	return res;
 }
 
-float bytes_to_double(std::array<uint8_t, 8>& data)
+double bytes_to_double(std::array<uint8_t, 8>& data)
 {
 	if (get_endianness() == Endianness::LITTLE_ENDIAN)
 	{
