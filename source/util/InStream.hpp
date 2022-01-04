@@ -35,6 +35,11 @@ public:
 	{
 		return (get_u2() << 16) | get_u2();
 	}
+
+	void skip(size_t length)
+	{
+		stream.seekg(length, std::ios_base::cur);
+	}
 };
 
 #endif // IN_STREAM_HPP

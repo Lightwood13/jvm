@@ -10,15 +10,15 @@
 
 #include "../util/util.hpp"
 #include "../util/InStream.hpp"
-#include "../constant_pool/ConstantBase.hpp"
-#include "../constant_pool/ConstantUtf8.hpp"
-#include "../constant_pool/ConstantInteger.hpp"
-#include "../constant_pool/ConstantFloat.hpp"
-#include "../constant_pool/ConstantLong.hpp"
-#include "../constant_pool/ConstantDouble.hpp"
-#include "../constant_pool/ConstantMethodHandle.hpp"
-#include "../constant_pool/other_constants.hpp"
-#include "../constant_pool/ConstantPool.hpp"
+#include "../metainfo/constant_pool/ConstantBase.hpp"
+#include "../metainfo/constant_pool/ConstantUtf8.hpp"
+#include "../metainfo/constant_pool/ConstantInteger.hpp"
+#include "../metainfo/constant_pool/ConstantFloat.hpp"
+#include "../metainfo/constant_pool/ConstantLong.hpp"
+#include "../metainfo/constant_pool/ConstantDouble.hpp"
+#include "../metainfo/constant_pool/ConstantMethodHandle.hpp"
+#include "../metainfo/constant_pool/other_constants.hpp"
+#include "../metainfo/constant_pool/ConstantPool.hpp"
 
 template <class ConstantClass>
 std::unique_ptr<ConstantClass> parse_constant_one_index(InStream& stream)

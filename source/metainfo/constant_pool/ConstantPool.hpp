@@ -11,6 +11,12 @@ class ConstantPool
 public:
 	ConstantPool(std::vector<std::shared_ptr<ConstantBase>>&& pool) : pool(std::move(pool))
 	{ }
+	
+	ConstantPool(const ConstantPool&) = delete;
+
+	ConstantPool(ConstantPool&& other) noexcept : pool(std::move(other.pool))
+	{
+	}
 
 	std::shared_ptr<ConstantBase> operator[](uint16_t index) const
 	{
@@ -19,7 +25,7 @@ public:
 		return pool[index - 1];
 	}
 private:
-	const std::vector<std::shared_ptr<ConstantBase>> pool;
+	std::vector<std::shared_ptr<ConstantBase>> pool;
 };
 
 #endif // CONSTANT_POOL_HPP

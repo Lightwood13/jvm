@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../source/parser/parser.cpp"
+#include "../source/parser/constant_pool_parser.cpp"
 
 #include <fstream>
 #include <sstream>
