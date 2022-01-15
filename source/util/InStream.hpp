@@ -4,13 +4,18 @@
 #include <istream>
 #include <cstdint>
 #include <stdexcept>
+#include <string>
 
 class InStream
 {
 private:
 	std::istream& stream;
+	std::string name;
 public:
-	InStream(std::istream& stream) : stream(stream) {}
+	InStream(std::istream& stream, const std::string& name) : stream(stream), name(name) {}
+
+	std::string get_name() { return name; }
+
 	void read(char* dest, std::streamsize count)
 	{
 		stream.read(dest, count);

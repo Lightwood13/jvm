@@ -15,7 +15,7 @@ class HelperStream : public InStream
 private:
 	std::istringstream stream;
 public:
-	HelperStream(std::vector<uint8_t>& data) : InStream(stream)
+	HelperStream(std::vector<uint8_t>& data) : InStream(stream, "test")
 	{
 		std::string s(data.size(), 0);
 		std::memcpy(s.data(), data.data(), data.size());
@@ -331,7 +331,7 @@ TEST(Parser, ParseConstantPool)
 	std::ifstream inFile("../../../test/resources/TestConstant.class");
 	ASSERT_EQ(inFile.is_open(), true);
 	inFile.seekg(8);
-	InStream inStream(inFile);
+	InStream inStream(inFile, "TestConstant.class");
 	ConstantPool cp = parse_constant_pool(inStream);
 	ASSERT_THROW(
 	{

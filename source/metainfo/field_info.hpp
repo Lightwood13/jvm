@@ -10,19 +10,30 @@
 class FieldInfo
 {
 public:
-	FieldInfo(uint16_t access_flags, uint16_t name_index, uint16_t descriptor_index,
-		std::vector<std::shared_ptr<AttributeBase>>&& attributes)
-		: access_flags(access_flags), name_index(name_index), descriptor_index(descriptor_index),
+	FieldInfo(
+		uint16_t access_flags,
+		uint16_t name_index,
+		uint16_t descriptor_index,
+		std::vector<std::shared_ptr<AttributeBase>>&& attribute
+	) : access_flags(access_flags), name_index(name_index), descriptor_index(descriptor_index),
 		attributes(attributes) {};
+
+	FieldInfo(const FieldInfo& other) = delete;
+
+	FieldInfo(FieldInfo&& other) noexcept : access_flags(other.access_flags), name_index(other.name_index),
+		descriptor_index(other.descriptor_index), attributes(std::move(other.attributes)) {};
+
 	uint16_t get_access_flags() const { return access_flags; }
 	uint16_t get_name_index() const { return name_index; }
 	uint16_t get_descriptor_index() const { return descriptor_index; }
+
 	std::shared_ptr<AttributeBase> operator[](uint16_t index) const
 	{
 		if (index == 0 || index >= attributes.size())
 			throw std::invalid_argument("Invalid field attribute index");
 		return attributes[index];
 	}
+
 private:
 	uint16_t access_flags;
 	uint16_t name_index;
